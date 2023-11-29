@@ -23,7 +23,7 @@ public class Ants extends ApplicationAdapter {
 	SpriteBatch batch;
 	private Texture nodeTexture;
 	private Texture antTexture;
-	private HashMap<Integer,Sprite> verticesSprites;
+	private HashMap<Node,Sprite> verticesSprites;
 	OrthographicCamera camera;
 	ShapeRenderer shapeRenderer;
 	private Stage stage;
@@ -57,7 +57,7 @@ public class Ants extends ApplicationAdapter {
 		verticesSprites = new HashMap<>();
 		float[] xSequence = haltonSequence(3,100);
 		float[] ySequence = haltonSequence(2,100);
-		for (Integer vertex :
+		for (Node vertex :
 				WorldManager.worldManager().getGraph().getVertices()) {
 			int i = verticesSprites.size();
 			Sprite newVertexSprite= new Sprite(nodeTexture,nodeTexture.getWidth(),nodeTexture.getHeight());
@@ -67,11 +67,11 @@ public class Ants extends ApplicationAdapter {
 		}
 		// Add edges to the graph
 		// Store edge information to speedup drawing
-		ArrayList<AbstractMap.SimpleEntry<Integer,Integer>> edges = WorldManager.worldManager().getGraph().getEdges();
+		ArrayList<AbstractMap.SimpleEntry<Node,Node>> edges = WorldManager.worldManager().getGraph().getEdges();
 		edgeSources = new Vector2[edges.size()];
 		edgeEnds = new Vector2[edges.size()];
 		for (int j = 0; j < edges.size(); j++) {
-			AbstractMap.SimpleEntry<Integer,Integer> edge = edges.get(j);
+			AbstractMap.SimpleEntry<Node,Node> edge = edges.get(j);
 			Vector2 edgeSource = new Vector2(verticesSprites.get(edge.getKey()).getX() + verticesSprites.get(edge.getKey()).getWidth()/2, verticesSprites.get(edge.getKey()).getY() + verticesSprites.get(edge.getKey()).getHeight()/2);
 			Vector2 edgeEnd = new Vector2(verticesSprites.get(edge.getValue()).getX() + verticesSprites.get(edge.getValue()).getWidth()/2, verticesSprites.get(edge.getValue()).getY() + verticesSprites.get(edge.getValue()).getHeight()/2);
 			edgeSources[j] = edgeSource;
@@ -122,6 +122,9 @@ public class Ants extends ApplicationAdapter {
 			sprite.draw(batch);
 		}
 		batch.end();
+		for (Node vertex : WorldManager.worldManager().getGraph().getVertices()) {
+			vertex.update();
+		}
 	}
 
 
@@ -130,11 +133,9 @@ public class Ants extends ApplicationAdapter {
 		batch.dispose();
 		nodeTexture.dispose();
 		stage.dispose();
-		for (int i = 0; i < ants.length; i++) {
-			ants[i].interrupt();
-		}
+        for (Ant ant : ants) {
+            ant.interrupt();
+        }
 	}
 
-	private void initialiseGraph(int numberOfVertices, int edgeDensity){
-	}
 }

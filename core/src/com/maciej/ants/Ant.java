@@ -1,20 +1,25 @@
 package com.maciej.ants;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Ant extends Thread {
-    public float speed = 0.15f;
+    private final float speed = 0.15f;
     private float roadCovered;
     private int distanceToCover;
-    public int sourceVertex;
-    public int targetVertex;
+    public Node sourceVertex;
+    public Node targetVertex;
+    private static int counter =0;
     public Ant(){
-       sourceVertex = 0;
-      chooseRandomTravel();
+        reactions = new LinkedBlockingQueue<Command>(1);
+        sourceVertex = WorldManager.worldManager().getGraph().getVertices().iterator().next();
+        targetVertex = sourceVertex;
+        chooseRandomTravel();
+
     }
+    LinkedBlockingQueue<Command> reactions;
     @Override
     public void run() {
         while (true){
@@ -25,6 +30,14 @@ public class Ant extends Thread {
             }
             roadCovered+=speed;
             if(roadCovered >= distanceToCover){
+                targetVertex.registerAnt(this);
+                targetVertex.addCommand(new AttackCommand(this, targetVertex));
+                try {
+                    reactions.take().execute();
+                } catch (InterruptedException e) {
+                    return;
+                }
+                targetVertex.unregisterAnt(this);
                 chooseRandomTravel();
             }
 
@@ -35,16 +48,19 @@ public class Ant extends Thread {
         return roadCovered/distanceToCover;
     }
     private void chooseRandomTravel(){
-        HashMap<Integer,Integer> travelOptions = WorldManager.worldManager().getGraph().getSuccessors(targetVertex);
-        Iterator it = travelOptions.keySet().iterator();
+        HashMap<Node,Integer> travelOptions = WorldManager.worldManager().getGraph().getSuccessors(targetVertex);
+        Iterator<Node> it = travelOptions.keySet().iterator();
         for (int i = 0; i < ThreadLocalRandom.current().nextInt(travelOptions.size()); i++) {
             it.next();
         }
         sourceVertex = targetVertex;
         roadCovered = 0;
-        targetVertex = (int) it.next();
+        targetVertex =  it.next();
         distanceToCover = travelOptions.get(targetVertex);
 
+    }
+    public void takeDamage(){
+        System.out.println("Taking damage!");
     }
 
 }

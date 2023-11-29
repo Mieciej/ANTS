@@ -9,7 +9,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static com.maciej.ants.Math.haltonSequence;
 
 public class WorldManager {
-    private Graph<Integer> graph;
+    private Graph<Node> graph;
     private static WorldManager instance;
 
     public static WorldManager worldManager(){
@@ -24,30 +24,31 @@ public class WorldManager {
         return instance;
     }
     public static void initialiseWorld(int numberOfVertices){
-       Graph<Integer> newGraph = new Graph<>();
+       Graph<Node> newGraph = new Graph<>();
         for (int i = 0; i < numberOfVertices; i++) {
-            newGraph.addVertex(i);
+            Node node = new Node();
+            newGraph.addVertex(node);
         }
         float[] xSequence = haltonSequence(3,numberOfVertices);
         float[] ySequence = haltonSequence(2,numberOfVertices);
-        HashMap<Integer,Vector2> positions = new HashMap<>();
-        for (Integer vertex : newGraph.getVertices()) {
+        HashMap<Node,Vector2> positions = new HashMap<>();
+        for (Node vertex : newGraph.getVertices()) {
             int n = positions.size();
             positions.put(vertex,new Vector2(xSequence[n],ySequence[n]));
         }
-        for (int vertex: newGraph.getVertices()){
+        for (Node vertex: newGraph.getVertices()){
             Vector2 vertexPos = positions.get(vertex);
-            ArrayList<Integer> alreadyConnected = new ArrayList<>();
+            ArrayList<Node> alreadyConnected = new ArrayList<>();
             int edgeDensity = ThreadLocalRandom.current().nextInt(2,4);
             while (alreadyConnected.size()<edgeDensity) {
                 double minDistance =  Double.POSITIVE_INFINITY;
-                int key = 0;
-                for (int neighbour : newGraph.getVertices()) {
+                Node key = null;
+                for (Node neighbour : newGraph.getVertices()) {
                     if (neighbour == vertex || alreadyConnected.contains(neighbour)) continue;
-                     float neighPos =  vertexPos.dst(positions.get(neighbour));
-                     if(neighPos<minDistance) {
-                         minDistance = neighPos;
-                         key = neighbour;
+                    float neighPos =  vertexPos.dst(positions.get(neighbour));
+                    if(neighPos<minDistance) {
+                        minDistance = neighPos;
+                        key = neighbour;
                      }
                 }
                 newGraph.addEdge(vertex, key,   (int)(minDistance * 100) );
@@ -57,10 +58,10 @@ public class WorldManager {
         instance = new WorldManager();
         instance.setGraph(newGraph);
     }
-    public Graph<Integer> getGraph(){
+    public Graph<Node> getGraph(){
         return graph;
     }
-    private void setGraph(Graph<Integer> value){
+    private void setGraph(Graph<Node> value){
        graph =  value;
     }
 }
