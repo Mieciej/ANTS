@@ -1,22 +1,32 @@
 package com.maciej.ants;
 
+import com.badlogic.gdx.math.Vector2;
+
 import java.security.InvalidKeyException;
 import java.util.*;
 
 public class Graph<V> {
 
-    HashMap<V,HashMap<V,Integer> > adjacencyList;
+    HashMap<V,HashMap<V,Float> > adjacencyList;
+
+
+    private HashMap<V, Vector2> abstractPositions;
 
     public Graph(){
         adjacencyList = new HashMap<>();
+        abstractPositions = new HashMap<>();
     }
     public void addVertex(V vertex){
         if(adjacencyList.get(vertex)== null){
-            adjacencyList.put(vertex,new HashMap<V, Integer>());
+            adjacencyList.put(vertex,new HashMap<V, Float>());
         }
     }
+    public void setAbstractPosition(V vertex, Vector2 abstractPos ){
+       abstractPositions.put(vertex, abstractPos);
+    }
 
-    public void addEdge(V vertex1, V vertex2, int weight){
+
+    public void addEdge(V vertex1, V vertex2, float weight){
 
         try {
             if (adjacencyList.get(vertex1) == null || adjacencyList.get(vertex2) == null)
@@ -30,7 +40,7 @@ public class Graph<V> {
     public Set<V> getVertices(){
         return adjacencyList.keySet();
     }
-    public HashMap<V, Integer> getSuccessors(V vertex){
+    public HashMap<V, Float> getSuccessors(V vertex){
         return adjacencyList.get(vertex);
     }
     public ArrayList<AbstractMap.SimpleEntry<V,V>> getEdges(){
@@ -49,5 +59,7 @@ public class Graph<V> {
         return edges;
     }
 
-
+    public Vector2 getAbstractPosition(V vertex) {
+        return abstractPositions.get(vertex);
+    }
 }
