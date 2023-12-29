@@ -10,19 +10,14 @@ public class Graph<V> {
     HashMap<V,HashMap<V,Float> > adjacencyList;
 
 
-    private HashMap<V, Vector2> abstractPositions;
 
     public Graph(){
         adjacencyList = new HashMap<>();
-        abstractPositions = new HashMap<>();
     }
     public void addVertex(V vertex){
         if(adjacencyList.get(vertex)== null){
             adjacencyList.put(vertex,new HashMap<V, Float>());
         }
-    }
-    public void setAbstractPosition(V vertex, Vector2 abstractPos ){
-       abstractPositions.put(vertex, abstractPos);
     }
 
 
@@ -57,9 +52,5 @@ public class Graph<V> {
             }
         }
         return edges;
-    }
-
-    public Vector2 getAbstractPosition(V vertex) {
-        return abstractPositions.get(vertex);
     }
 }

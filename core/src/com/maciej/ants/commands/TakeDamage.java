@@ -2,9 +2,9 @@ package com.maciej.ants.commands;
 
 import com.maciej.ants.Ant;
 
-public class DoNothing extends ReflectiveCommand<Ant> implements Command {
+public class TakeDamage extends ReflectiveCommand<Ant>{
     @Override
     public void execute() {
-
+         reflector.takeDamage();
     }
 }

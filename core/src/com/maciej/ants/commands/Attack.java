@@ -10,7 +10,7 @@ public class Attack extends ReflectiveCommand<Node>{
     private ReflectiveCommand<Ant>  afterAttack;
     @Override
     public void execute() {
-        boolean attacked = reflector.sendReactionToOtherAnt(attacker, new Retreat());
+        boolean attacked = reflector.sendReactionToOtherAnt(attacker, new TakeDamage());
         afterAttack.setReflector(attacker);
         if (attacked) attacker.addReaction(afterAttack);
     }

@@ -8,7 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-public class Ant extends Thread {
+public class Ant extends Thread implements AbstractPositionable {
     private Vector2 abstractPosition;
     private Node currentVertex;
     public boolean exit;
@@ -16,20 +16,22 @@ public class Ant extends Thread {
     private LinkedBlockingQueue<Command> reactions;
     private Anthill anthill;
     private ArrayList<Command> steps;
-    private boolean retreating;
     private int numberOfLarvae;
     private int maxLarvae;
     private String antName;
     private AntVariant variant;
-    public Ant(Anthill anthill,AntVariant variant){
+    private int currentHP;
+    private int maxHP;
+    public Ant(Anthill anthill,AntVariant variant , int maxLarvae, int hp){
         numberOfLarvae = 0;
-        maxLarvae = 1;
+        this.maxLarvae = maxLarvae;
+        this.currentHP = hp;
+        this.maxHP = hp;
         setExit(false);
-        setRetreating(false);
         reactions = new LinkedBlockingQueue<>(1);
         setAnthill(anthill);
         setCurrentVertex(getAnthill());
-        setAbstractPosition(WorldManager.worldManager().getGraph().getAbstractPosition(getCurrentVertex()));
+        setAbstractPosition(getAnthill().getAbstractPosition());
         steps = new ArrayList<>();
         addStep(new ChooseRandomTravel(this,getAnthill()));
         setTeam(anthill.team);
@@ -66,20 +68,10 @@ public class Ant extends Thread {
                 c.execute();
             }
             else {
-                if(isRetreating()){
-                    setRetreating(false);
-                    try {
-                        sleep(5000);
-                    }catch (InterruptedException e){
-                        setExit(true);
-                    }
-
-                }
-
-
                 addStep(new ChooseRandomTravel(this,getCurrentVertex()));
             }
         }
+        WorldManager.worldManager().removeAnt(this);
     }
 
     public Node getCurrentVertex() {
@@ -95,10 +87,7 @@ public class Ant extends Thread {
     public Command getReaction(){
         try {
             return reactions.take();
-        } catch (InterruptedException  e)
-        {
-            setExit(true);
-        }
+        } catch (InterruptedException  e) { setExit(true); }
         return null;
 
     }
@@ -155,7 +144,6 @@ public class Ant extends Thread {
         this.anthill = anthill;
     }
     public void onNodeReached(Node node){
-        if(isRetreating())return;
         node.registerAnt(this);
         for (ReflectiveCommand<Node> command : variant.matchNodeToCommands(node)) {
             command.setReflector(node);
@@ -167,19 +155,12 @@ public class Ant extends Thread {
         clearReactions();
     }
 
-    public void setRetreating(boolean retreating) {
-        this.retreating = retreating;
-    }
-
-    public boolean isRetreating() {
-        return retreating;
-    }
 
     @Override
     public String toString() {
-        String ret= getAntName() + " is a member of the " + getTeam() + " team.\n";
+        String ret= getAntName() + " is a " + variant.getVariantName() + " of the " + getTeam() + " team.\n";
+        ret += "HP: "+getCurrentHP()+"/"+getMaxHP()+"\n";
         if(numberOfLarvae>0) ret += " is carrying " +numberOfLarvae + " larvae.\n";
-        if (isRetreating()) ret+="The ant is wounded and currently retreating.\n";
         if(!steps.isEmpty()){
             StringBuilder stepString = new StringBuilder("His current route is: \n");
             for (int i = 0; i < java.lang.Math.min(steps.size(),3);++i) {
@@ -214,5 +195,19 @@ public class Ant extends Thread {
         int ret = numberOfLarvae;
         numberOfLarvae = 0;
         return  ret;
+    }
+    public void takeDamage(){
+        if(--currentHP <= 0 ){
+            ReflectiveCommand<Node> c = new DropLarvae(this);
+            c.setReflector(getCurrentVertex());
+            c.execute();
+            setExit(true);
+        }
+    }
+    private int getCurrentHP(){
+        return currentHP;
+    }
+    private int getMaxHP(){
+        return maxHP;
     }
 }

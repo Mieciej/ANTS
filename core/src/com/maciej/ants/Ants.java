@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.security.Key;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Ants extends ApplicationAdapter {
 	SpriteBatch batch;
@@ -32,10 +33,10 @@ public class Ants extends ApplicationAdapter {
 	private Skin skin ;
 	Vector2[] edgeSources;
 	Vector2[] edgeEnds;
-	Ant [] ants;
-	Sprite [] antSprites;
 	private float screenBoundX;
 	private float screenBoundY;
+
+	private Sprite antSprite  ;
 	@Override
 	public void create () {
 		// Load assets
@@ -61,7 +62,7 @@ public class Ants extends ApplicationAdapter {
 		descriptionPopup.add(description).padTop(5).padLeft(5).width(screenBoundX-5);
 
 		// Initialise World
-		WorldManager.initialiseWorld(100);
+		WorldManager.initialiseWorld(20,10);
 		// Generate and store vertices sprites
 		verticesSprites = new HashMap<>();
 		for (Node vertex :
@@ -78,9 +79,12 @@ public class Ants extends ApplicationAdapter {
 					case "STONE":
 						newVertexSprite.setColor(Color.LIGHT_GRAY);
 						break;
+					case "LEAF":
+						newVertexSprite.setColor(Color.GREEN);
+						break;
 				}
 			}
-			Vector2 newVertexPos = new Vector2(WorldManager.worldManager().getGraph().getAbstractPosition(vertex).x*screenBoundX,WorldManager.worldManager().getGraph().getAbstractPosition(vertex).y*screenBoundY);
+			Vector2 newVertexPos = new Vector2(vertex.getAbstractPosition().x*screenBoundX,vertex.getAbstractPosition().y*screenBoundY);
 			newVertexSprite.setPosition(newVertexPos.x, newVertexPos.y);
 			verticesSprites.put(vertex,newVertexSprite);
 		}
@@ -95,27 +99,7 @@ public class Ants extends ApplicationAdapter {
 			edgeSources[j] = edgeSource;
 			edgeEnds[j] = edgeEnd;
 		}
-		int numberOfAnts = 40;
-		antSprites = new Sprite[numberOfAnts];
-		ants = new Ant[numberOfAnts];
-		for (int i = 0; i < numberOfAnts; i++) {
-			antSprites[i] =new Sprite(antTexture,antTexture.getWidth(),antTexture.getHeight());
-			if(i<numberOfAnts/2)
-				ants[i] = AntFactory.getWorker(WorldManager.worldManager().getAnthills().get("RED"));
-			else
-				ants[i]  = AntFactory.getWorker(WorldManager.worldManager().getAnthills().get("BLUE"));
-			switch (ants[i].getTeam()){
-				case "RED":
-					antSprites[i].setColor(Color.RED);
-					break;
-				case "BLUE":
-					antSprites[i].setColor(Color.BLUE);
-					break;
-			}
-			antSprites[i].setPosition(ants[i].getAbstractPosition().x*screenBoundX + antSprites[i].getWidth()/2,ants[i].getAbstractPosition().y*screenBoundY + antSprites[i].getHeight()/2);
-			ants[i].start();
-
-		}
+		antSprite = new Sprite(antTexture,antTexture.getWidth(),antTexture.getHeight());
 	}
 	private Object selected = null;
 	@Override
@@ -139,8 +123,17 @@ public class Ants extends ApplicationAdapter {
 				verticesSprites.values()) {
 			sprite.draw(batch);
 		}
-		for (int i = 0; i < ants.length; i++) {
-			antSprites[i].draw(batch);
+		for (Ant ant : WorldManager.worldManager().getAnts()) {
+			switch (ant.getTeam()){
+				case "RED":
+					antSprite.setColor(Color.RED);
+					break;
+				case "BLUE":
+					antSprite.setColor(Color.BLUE);
+					break;
+			}
+			antSprite.setPosition(ant.getAbstractPosition().x*screenBoundX + antSprite.getWidth()/2,ant.getAbstractPosition().y*screenBoundY + antSprite.getHeight()/2);
+			antSprite.draw(batch);
 		}
 		batch.end();
 		for (Node vertex : WorldManager.worldManager().getGraph().getVertices()) {
@@ -159,18 +152,17 @@ public class Ants extends ApplicationAdapter {
 				}
 			}
 		}
-		for (int i = 0; i < ants.length; i++) {
+		for (Ant ant: WorldManager.worldManager().getAnts()) {
 			if(clicked){
 				Vector3 clickPos = new Vector3(Gdx.input.getX(), Gdx.input.getY(),0);
-				Rectangle rect = antSprites[i].getBoundingRectangle();
+				antSprite.setPosition(ant.getAbstractPosition().x*screenBoundX + antSprite.getWidth()/2,ant.getAbstractPosition().y*screenBoundY + antSprite.getHeight()/2);
+				Rectangle rect = antSprite.getBoundingRectangle();
 				camera.unproject(clickPos);
 				if(rect.contains(clickPos.x,clickPos.y)){
-					selected = ants[i];
+					selected = ant;
 					s = true;
 				}
 			}
-
-			antSprites[i].setPosition(ants[i].getAbstractPosition().x*screenBoundX + antSprites[i].getWidth()/2,ants[i].getAbstractPosition().y*screenBoundY + antSprites[i].getHeight()/2);
 		}
 		if(selected!=null)
 			description.setText(selected.toString());
@@ -187,7 +179,7 @@ public class Ants extends ApplicationAdapter {
 		nodeTexture.dispose();
 		antTexture.dispose();
 		stage.dispose();
-		for (Ant ant : ants) {
+		for (Ant ant : WorldManager.worldManager().getAnts()) {
 			ant.interrupt();
 		}
 	}

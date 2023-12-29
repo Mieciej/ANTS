@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AntVariant {
+    private String variantName;
+    public AntVariant(String name){ setVariantName(name);}
     public ArrayList<ReflectiveCommand<Node>> matchNodeToCommands(Node node){
         return mapping.getOrDefault(node.getNodeType(),mapping.get("DEFAULT"));
 
@@ -15,5 +17,13 @@ public class AntVariant {
 
     public void setMapping(HashMap<String, ArrayList<ReflectiveCommand<Node>>> mapping) {
         this.mapping = mapping;
+    }
+
+    private void setVariantName(String variantName) {
+        this.variantName = variantName;
+    }
+
+    public String getVariantName() {
+        return variantName;
     }
 }

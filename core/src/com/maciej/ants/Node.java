@@ -1,5 +1,6 @@
 package com.maciej.ants;
 
+import com.badlogic.gdx.math.Vector2;
 import com.maciej.ants.commands.Command;
 import com.maciej.ants.commands.ReflectiveCommand;
 
@@ -7,49 +8,53 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Node  {
+public class Node  implements AbstractPositionable {
     private ArrayList<Ant> antRegister;
+    private Vector2 abstractPosition;
     private ArrayList<AbstractMap.SimpleEntry<Ant, Command>> commandQueue;
-    private final Object  commandMutex = new Object();
-    private final Object  registrationMutex = new Object();
+    private final Object commandMutex = new Object();
+    private final Object registrationMutex = new Object();
     private String nodeName;
     private int larvaCount;
     private final Object larvaMutex = new Object();
     private String nodeType;
-    public void addCommand(Ant sender,Command command){
-        synchronized (commandMutex){
-               commandQueue.add(new AbstractMap.SimpleEntry<Ant, Command>(sender,command));
+
+    public void addCommand(Ant sender, Command command) {
+        synchronized (commandMutex) {
+            commandQueue.add(new AbstractMap.SimpleEntry<Ant, Command>(sender, command));
         }
     }
-    public void registerAnt(Ant ant){
-       synchronized (registrationMutex){
-          antRegister.add(ant);
-       }
-    }
-    public void unregisterAnt(Ant ant){
-       synchronized (registrationMutex){
-           antRegister.remove(ant);
-           synchronized (commandMutex){
-               for (int i = 0; i < commandQueue.size(); i++) {
-                   if(commandQueue.get(i).getKey() == ant) commandQueue.remove(i);
-               }
-           }
-       }
-    }
-    public boolean sendReactionToOtherAnt(Ant invokingAnt, ReflectiveCommand<Ant> e){
+
+    public void registerAnt(Ant ant) {
         synchronized (registrationMutex) {
-            for (Ant ant : antRegister)
-            {
-                if(ant!=invokingAnt&&!ant.getTeam().equals(invokingAnt.getTeam())){
-                   e.setReflector(ant);
-                   return ant.addReaction(e);
+            antRegister.add(ant);
+        }
+    }
+
+    public void unregisterAnt(Ant ant) {
+        synchronized (registrationMutex) {
+            antRegister.remove(ant);
+            synchronized (commandMutex) {
+                for (int i = 0; i < commandQueue.size(); i++) {
+                    if (commandQueue.get(i).getKey() == ant) commandQueue.remove(i);
                 }
             }
         }
-        return  false;
     }
 
-    public Node(){
+    public boolean sendReactionToOtherAnt(Ant invokingAnt, ReflectiveCommand<Ant> e) {
+        synchronized (registrationMutex) {
+            for (Ant ant : antRegister) {
+                if (ant != invokingAnt && !ant.getTeam().equals(invokingAnt.getTeam())) {
+                    e.setReflector(ant);
+                    return ant.addReaction(e);
+                }
+            }
+        }
+        return false;
+    }
+
+    public Node() {
         commandQueue = new ArrayList<>();
         antRegister = new ArrayList<>();
         larvaCount = ThreadLocalRandom.current().nextInt(3);
@@ -130,9 +135,11 @@ public class Node  {
                 "Yellowjacket Yard",
                 "Zero-zone Zooid Zenith"
         };
-        setNodeType("STONE");
+        if (ThreadLocalRandom.current().nextBoolean()) setNodeType("STONE");
+        else setNodeType("LEAF");
         setNodeName(militaryBaseNames[ThreadLocalRandom.current().nextInt(militaryBaseNames.length)]);
     }
+
     public void update() {
         synchronized (commandMutex) {
             if (!commandQueue.isEmpty()) {
@@ -140,23 +147,22 @@ public class Node  {
             }
         }
     }
-    public boolean pickLarvae()
-    {
-        synchronized (larvaMutex){
-            if(larvaCount>0)
-            {
+
+    public boolean pickLarvae() {
+        synchronized (larvaMutex) {
+            if (larvaCount > 0) {
                 larvaCount--;
                 return true;
-            }
-            else return false;
+            } else return false;
         }
     }
-    public void leaveLarvae(int count){
-       synchronized (larvaMutex)
-       {
-           larvaCount+=count;
-       }
+
+    public void leaveLarvae(int count) {
+        synchronized (larvaMutex) {
+            larvaCount += count;
+        }
     }
+
     public void setNodeName(String nodeName) {
         this.nodeName = nodeName;
     }
@@ -169,15 +175,15 @@ public class Node  {
     public String toString() {
         StringBuilder ret = new StringBuilder();
         ret.append(getNodeName()).append("\n");
-        if(larvaCount>0) ret.append("There is ").append(larvaCount).append(" larvae.\n");
-        if(antRegister.isEmpty()) return  ret.toString();
+        if (larvaCount > 0) ret.append("There is ").append(larvaCount).append(" larvae.\n");
+        if (antRegister.isEmpty()) return ret.toString();
         ret.append("Ants:\n");
-        for (int i = 0; i < java.lang.Math.min(antRegister.size(),3); i++) {
-           ret.append(antRegister.get(i).getAntName()).append("\n");
+        for (int i = 0; i < java.lang.Math.min(antRegister.size(), 3); i++) {
+            ret.append(antRegister.get(i).getAntName()).append("\n");
         }
-        if(antRegister.size() > 3)
+        if (antRegister.size() > 3)
             ret.append("...\n");
-        return  ret.toString();
+        return ret.toString();
     }
 
     public String getNodeType() {
@@ -186,5 +192,13 @@ public class Node  {
 
     public void setNodeType(String nodeType) {
         this.nodeType = nodeType;
+    }
+
+    public void setAbstractPosition(Vector2 abstractPosition) {
+        this.abstractPosition = abstractPosition;
+    }
+
+    public Vector2 getAbstractPosition() {
+        return abstractPosition;
     }
 }

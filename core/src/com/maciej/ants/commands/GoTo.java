@@ -17,14 +17,14 @@ public class GoTo extends ReflectiveCommand<Ant> {
     @Override
     public void execute() {
         reflector.setCurrentVertex(null);
-        reflector.setAbstractPosition(WorldManager.worldManager().getGraph().getAbstractPosition(start));
+        reflector.setAbstractPosition(start.getAbstractPosition());
         float distanceToCover ;
         if(start==end)
             distanceToCover = 0;
         else distanceToCover = WorldManager.worldManager().getGraph().getSuccessors(start).get(end);
         boolean exit = false;
-        Vector2 antPosSource = WorldManager.worldManager().getGraph().getAbstractPosition(start);
-        Vector2 antPosTarget = WorldManager.worldManager().getGraph().getAbstractPosition(end);
+        Vector2 antPosSource = start.getAbstractPosition();
+        Vector2 antPosTarget = end.getAbstractPosition();
         while (!reflector.getExit()&&!exit){
             try {
                 sleep(16);
@@ -35,7 +35,7 @@ public class GoTo extends ReflectiveCommand<Ant> {
             progress+= speed;
             reflector.setAbstractPosition(new Vector2((antPosTarget.x - antPosSource.x) * progress/distanceToCover + antPosSource.x, (antPosTarget.y - antPosSource.y) * progress/distanceToCover + antPosSource.y));
             if(progress >= distanceToCover){
-                reflector.setAbstractPosition(WorldManager.worldManager().getGraph().getAbstractPosition(end));
+                reflector.setAbstractPosition(antPosTarget  );
                 reflector.setCurrentVertex(end);
                 reflector.onNodeReached(end);
                 exit = true;
@@ -48,8 +48,7 @@ public class GoTo extends ReflectiveCommand<Ant> {
         this.end = end;
         progress = 0;
         setReflector(ant);
-        if(ant.isRetreating()) speed = 0.0015f;
-        else speed = 0.002f;
+        speed = 0.002f;
     }
 
     @Override
