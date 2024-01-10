@@ -19,25 +19,41 @@ public class Node  implements AbstractPositionable {
     private final Object larvaMutex = new Object();
     private String nodeType;
 
+    /**
+     *  Add Command to be executed during update()
+     * @param sender The Ant that sends the command.
+     * @param command The command.
+     */
     public void addCommand(Ant sender, Command command) {
         synchronized (commandMutex) {
             commandQueue.add(new AbstractMap.SimpleEntry<Ant, Command>(sender, command));
         }
     }
 
+    /**
+     * Add ant to antRegister to allow Node to manage which ants are staying in node.
+     * @param ant The ant to be registered.
+     */
     public void registerAnt(Ant ant) {
         synchronized (registrationMutex) {
             antRegister.add(ant);
         }
     }
 
+    /**
+     * Remove ant from antRegister to allow Node to remove Commands which where added to commandQueue by the Ant.
+     * @param ant The ant to be unregistered.
+     */
     public void unregisterAnt(Ant ant) {
         synchronized (registrationMutex) {
             antRegister.remove(ant);
             synchronized (commandMutex) {
+                ArrayList<Integer> indices = new ArrayList<>();
                 for (int i = 0; i < commandQueue.size(); i++) {
-                    if (commandQueue.get(i).getKey() == ant) commandQueue.remove(i);
+                    if (commandQueue.get(i).getKey() == ant) indices.add(i-indices.size());
                 }
+
+                for (int index : indices) commandQueue.remove(index);
             }
         }
     }
@@ -178,10 +194,10 @@ public class Node  implements AbstractPositionable {
         if (larvaCount > 0) ret.append("There is ").append(larvaCount).append(" larvae.\n");
         if (antRegister.isEmpty()) return ret.toString();
         ret.append("Ants:\n");
-        for (int i = 0; i < java.lang.Math.min(antRegister.size(), 3); i++) {
+        for (int i = 0; i < java.lang.Math.min(antRegister.size(), 2); i++) {
             ret.append(antRegister.get(i).getAntName()).append("\n");
         }
-        if (antRegister.size() > 3)
+        if (antRegister.size() > 2)
             ret.append("...\n");
         return ret.toString();
     }

@@ -8,12 +8,16 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.*;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.security.Key;
@@ -35,8 +39,15 @@ public class Ants extends ApplicationAdapter {
 	Vector2[] edgeEnds;
 	private float screenBoundX;
 	private float screenBoundY;
+	private TextButton buttonWorker;
+	private TextButton buttonDrone;
+	private TextButton buttonSoldier;
+	private TextButton buttonCollector;
+	private TextButton buttonBlunderer;
+	private Sprite antSprite;
+	private TextButton buttonRemoveAnt;
+	private Ant selectedAnt;
 
-	private Sprite antSprite  ;
 	@Override
 	public void create () {
 		// Load assets
@@ -48,7 +59,7 @@ public class Ants extends ApplicationAdapter {
 		shapeRenderer = new ShapeRenderer();
 		// Create Camera
 		camera = new OrthographicCamera();
-		camera.setToOrtho(false,800,400);
+		camera.setToOrtho(false,960,480);
 		screenBoundX = camera.viewportWidth;
 		screenBoundY = camera.viewportHeight -   100;
 		// Initialise UI elements
@@ -57,12 +68,69 @@ public class Ants extends ApplicationAdapter {
 		descriptionPopup.setFillParent(true);
 		descriptionPopup.top().left();
 		stage.addActor(descriptionPopup);
-		description = new Label("Hello World",skin);
-		description.setFontScale(0.75f);
-		descriptionPopup.add(description).padTop(5).padLeft(5).width(screenBoundX-5);
+		description = new Label("CLICK ON ANT/LOCATION TO DISPLAY INFORMATION.",skin);
+		buttonWorker = new TextButton("W",skin);
+		buttonWorker.setColor(Color.RED);
+		buttonWorker.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent changeEvent, Actor actor) {
+				WorldManager.worldManager().createAnt("WORKER",WorldManager.worldManager().getAnthills().get("RED"));
+			}
+		});
+		buttonDrone = new TextButton("D",skin);
+		buttonDrone.setColor(Color.RED);
+		buttonDrone.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent changeEvent, Actor actor) {
+				WorldManager.worldManager().createAnt("DRONE",WorldManager.worldManager().getAnthills().get("RED"));
+			}
+		});
+		buttonSoldier = new TextButton("S",skin);
+		buttonSoldier.setColor(Color.BLUE);
+		buttonSoldier.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent changeEvent, Actor actor) {
+				WorldManager.worldManager().createAnt("SOLDIER",WorldManager.worldManager().getAnthills().get("BLUE"));
+			}
+		});
+		buttonCollector = new TextButton("C",skin);
+		buttonCollector.setColor(Color.BLUE);
+		buttonCollector.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent changeEvent, Actor actor) {
+				WorldManager.worldManager().createAnt("COLLECTOR",WorldManager.worldManager().getAnthills().get("BLUE"));
+			}
+		});
+		buttonBlunderer = new TextButton("B",skin);
+		buttonBlunderer.setColor(Color.BLUE);
+		buttonBlunderer.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent changeEvent, Actor actor) {
+				WorldManager.worldManager().createAnt("BLUNDERER",WorldManager.worldManager().getAnthills().get("BLUE"));
+			}
+		});
 
+		description.setFontScale(0.75f);
+		buttonRemoveAnt = new TextButton("X",skin);
+		buttonRemoveAnt.setVisible(false);
+		buttonRemoveAnt.setColor(Color.BLACK);
+		buttonRemoveAnt.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent changeEvent, Actor actor) {
+				if(selectedAnt!=null)
+					selectedAnt.setExit(true);
+			}
+		});
+		descriptionPopup.add(description).padTop(5).padLeft(5).padRight(75).width(screenBoundX-475);
+		descriptionPopup.add(buttonRemoveAnt).top().right().padTop(5);
+		descriptionPopup.add(buttonWorker).top().right().padTop(5);
+		descriptionPopup.add(buttonDrone).top().right().padTop(5);
+		descriptionPopup.add(buttonSoldier).top().right().padTop(5);
+		descriptionPopup.add(buttonCollector).top().right().padTop(5);
+		descriptionPopup.add(buttonBlunderer).top().right().padTop(5);
+		Gdx.input.setInputProcessor(stage);
 		// Initialise World
-		WorldManager.initialiseWorld(20,10);
+		WorldManager.initialiseWorld(4,0);
 		// Generate and store vertices sprites
 		verticesSprites = new HashMap<>();
 		for (Node vertex :
@@ -102,6 +170,12 @@ public class Ants extends ApplicationAdapter {
 		antSprite = new Sprite(antTexture,antTexture.getWidth(),antTexture.getHeight());
 	}
 	private Object selected = null;
+
+	@Override
+	public void resize(int width, int height) {
+		stage.getViewport().update(width,height,true);
+	}
+
 	@Override
 	public void render () {
 		ScreenUtils.clear(Color.DARK_GRAY);
@@ -160,15 +234,23 @@ public class Ants extends ApplicationAdapter {
 				camera.unproject(clickPos);
 				if(rect.contains(clickPos.x,clickPos.y)){
 					selected = ant;
+					selectedAnt = ant;
 					s = true;
 				}
 			}
 		}
 		if(selected!=null)
+		{
 			description.setText(selected.toString());
+			if(selected.getClass().toString().equals(Ant.class.toString()) ){
+				buttonRemoveAnt.setVisible(true);
+			}
+			else buttonRemoveAnt.setVisible(false);
+		}
 		if(!s&&clicked){
 			description.setText("");
 			selected = null;
+			buttonRemoveAnt.setVisible(false);
 		}
 	}
 

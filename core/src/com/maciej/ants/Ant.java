@@ -22,6 +22,7 @@ public class Ant extends Thread implements AbstractPositionable {
     private AntVariant variant;
     private int currentHP;
     private int maxHP;
+    private final Object larvaeMutex = new Object();
     public Ant(Anthill anthill,AntVariant variant , int maxLarvae, int hp){
         numberOfLarvae = 0;
         this.maxLarvae = maxLarvae;
@@ -81,17 +82,23 @@ public class Ant extends Thread implements AbstractPositionable {
     public void setCurrentVertex(Node currentVertex) {
         this.currentVertex = currentVertex;
     }
+
+    /**
+     *
+     * @param reactionCommand Reaction to be executed by ant.
+     * @return True if adding reaction was successful, false if it was not.
+     */
     public boolean addReaction(Command reactionCommand){
        return reactions.offer(reactionCommand);
     }
-    public Command getReaction(){
+    private Command getReaction(){
         try {
             return reactions.take();
         } catch (InterruptedException  e) { setExit(true); }
         return null;
 
     }
-    public Command getReaction(int milliseconds){
+    private Command getReaction(int milliseconds){
         try {
             return reactions.poll(milliseconds, TimeUnit.MILLISECONDS);
         }catch (InterruptedException e){
@@ -99,20 +106,24 @@ public class Ant extends Thread implements AbstractPositionable {
         }
         return null;
     }
-    public void clearReactions(){
+    private void clearReactions(){
        reactions.clear();
     }
-
     public void setExit(boolean exit) {
         this.exit = exit;
     }
     public boolean getExit(){
         return exit;
     }
+
+    /**
+     *  Add step to the ant movement
+      * @param command
+     */
     public void addStep(Command command){
         steps.add(command);
     }
-    public Command getStep(){
+    private Command getStep(){
         if(!steps.isEmpty()) return steps.remove(0);
         else return null;
     }
@@ -129,9 +140,13 @@ public class Ant extends Thread implements AbstractPositionable {
         return team;
     }
 
-    public void setTeam(String team) {
+    private void setTeam(String team) {
         this.team = team;
     }
+
+    /**
+     * Clear stepQueue.
+     */
     public void clearSteps(){
         steps.clear();
     }
@@ -143,6 +158,11 @@ public class Ant extends Thread implements AbstractPositionable {
     private void setAnthill(Anthill anthill) {
         this.anthill = anthill;
     }
+
+    /**
+     * Matches AntVariant behaviour to node type, sending related commands to the node. Then waits for the reaction by the node and executes it.
+     * @param node The node that was reached
+     */
     public void onNodeReached(Node node){
         node.registerAnt(this);
         for (ReflectiveCommand<Node> command : variant.matchNodeToCommands(node)) {
@@ -163,10 +183,10 @@ public class Ant extends Thread implements AbstractPositionable {
         if(numberOfLarvae>0) ret += " is carrying " +numberOfLarvae + " larvae.\n";
         if(!steps.isEmpty()){
             StringBuilder stepString = new StringBuilder("His current route is: \n");
-            for (int i = 0; i < java.lang.Math.min(steps.size(),3);++i) {
+            for (int i = 0; i < java.lang.Math.min(steps.size(),2);++i) {
                 stepString.append(steps.get(i).toString()).append("\n");
             }
-            if(steps.size()>3) stepString.append("...\n");
+            if(steps.size()>2) stepString.append("...\n");
             ret +=stepString;
         }
         
@@ -180,22 +200,38 @@ public class Ant extends Thread implements AbstractPositionable {
     public String getAntName() {
         return antName;
     }
+
+    /**
+     *
+     * @return -1 if larvae was picked, 0 if the larvae was picked and Ant reached its maxLarvae, 1 if ant was not able to pick larvae
+     */
     public int pickLarvae(){
-        if(numberOfLarvae+1<maxLarvae){
-            numberOfLarvae++;
-            return -1;
-        } else if (numberOfLarvae+1 == maxLarvae) {
-            numberOfLarvae++;
-            return 0;
+        synchronized (larvaeMutex) {
+            if (numberOfLarvae + 1 < maxLarvae) {
+                numberOfLarvae++;
+                return -1;
+            } else if (numberOfLarvae + 1 == maxLarvae) {
+                numberOfLarvae++;
+                return 0;
+            } else return 1;
         }
-        else return 1;
     }
 
+    /**
+     *
+     * @return The number of larvae dropped.
+     */
     public int dropLarva(){
-        int ret = numberOfLarvae;
-        numberOfLarvae = 0;
-        return  ret;
+        synchronized (larvaeMutex) {
+            int ret = numberOfLarvae;
+            numberOfLarvae = 0;
+            return ret;
+        }
     }
+
+    /**
+     *  Reduce Ant HP by 1. If HP reaches 0, setExit to true.
+     */
     public void takeDamage(){
         if(--currentHP <= 0 ){
             ReflectiveCommand<Node> c = new DropLarvae(this);

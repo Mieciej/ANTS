@@ -107,10 +107,6 @@ public class WorldManager {
                 }
             }
         }
-        for(Ant ant:WorldManager.worldManager().getAnts())
-        {
-            ant.start();
-        }
     }
     public Graph<Node> getGraph(){
         return graph;
@@ -123,25 +119,28 @@ public class WorldManager {
         return anthills;
     }
     public void createAnt(String antVariantName,Anthill anthill){
+        Ant ant = null;
        switch (antVariantName) {
            case "SOLDIER":
-               ants.add(AntFactory.getSoldier(anthill));
+               ant = AntFactory.getSoldier(anthill);
                break;
            case "DRONE":
-               ants.add(AntFactory.getDrone(anthill));
+               ant = AntFactory.getDrone(anthill);
                break;
            case "WORKER":
-               ants.add(AntFactory.getWorker(anthill));
+               ant = (AntFactory.getWorker(anthill));
                break;
            case "BLUNDERER":
-               ants.add(AntFactory.getBlunderer(anthill));
+               ant = (AntFactory.getBlunderer(anthill));
                break;
            case "COLLECTOR":
-               ants.add(AntFactory.getCollector(anthill));
+               ant = (AntFactory.getCollector(anthill));
                break;
            default:
                throw new IllegalStateException("Unexpected value: " + antVariantName);
        }
+       ants.add(ant);
+       ant.start();
 
     }
     public void removeAnt(Ant ant){
