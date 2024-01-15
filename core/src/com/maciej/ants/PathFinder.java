@@ -2,9 +2,19 @@ package com.maciej.ants;
 
 import java.util.*;
 
+/**
+ * Finds paths on the graph.
+ */
 public class PathFinder {
     private Graph<Node> graph;
-    HashMap<Node,HashMap<Node,Float>> heuristic;
+    private HashMap<Node,HashMap<Node,Float>> heuristic;
+
+    /**
+     *
+     * @param start
+     * @param end
+     * @return list of Nodes creating path from start to end.
+     */
     public ArrayList<Node> getPath(final Node start, final Node end ) {
         final HashMap<Node, Float> reached = new HashMap<>();
 
@@ -53,6 +63,11 @@ public class PathFinder {
         }
         return null;
     }
+
+    /**
+     *
+     * @param graph The graph used to find path.
+     */
     public PathFinder(Graph<Node> graph ){
         this.graph = graph;
         heuristic = new HashMap<>();

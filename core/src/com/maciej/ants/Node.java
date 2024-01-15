@@ -8,6 +8,9 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Represents locations on the map.
+ */
 public class Node  implements AbstractPositionable {
     private ArrayList<Ant> antRegister;
     private Vector2 abstractPosition;
@@ -58,6 +61,12 @@ public class Node  implements AbstractPositionable {
         }
     }
 
+    /**
+     * Send reaction (command) to ant of opposing team to the sender.
+     * @param invokingAnt The ant which is sending the reaction.
+     * @param e The command to be executed by receiving ant.
+     * @return True if reactor was found, false otherwise.
+     */
     public boolean sendReactionToOtherAnt(Ant invokingAnt, ReflectiveCommand<Ant> e) {
         synchronized (registrationMutex) {
             for (Ant ant : antRegister) {
@@ -156,6 +165,9 @@ public class Node  implements AbstractPositionable {
         setNodeName(militaryBaseNames[ThreadLocalRandom.current().nextInt(militaryBaseNames.length)]);
     }
 
+    /**
+     * Execute one command of commandQueue. Run every tick (frame).
+     */
     public void update() {
         synchronized (commandMutex) {
             if (!commandQueue.isEmpty()) {
@@ -164,6 +176,10 @@ public class Node  implements AbstractPositionable {
         }
     }
 
+    /**
+     * Decreases number of larvae by 1.
+     * @return True if larvae was picked, false otherwise.
+     */
     public boolean pickLarvae() {
         synchronized (larvaMutex) {
             if (larvaCount > 0) {
@@ -173,20 +189,32 @@ public class Node  implements AbstractPositionable {
         }
     }
 
+    /**
+     * Increase number of larvae by count.
+     * @param count
+     */
     public void leaveLarvae(int count) {
         synchronized (larvaMutex) {
             larvaCount += count;
         }
     }
 
-    public void setNodeName(String nodeName) {
+    private void setNodeName(String nodeName) {
         this.nodeName = nodeName;
     }
 
+    /**
+     * Get Node Name.
+     * @return string - node name.
+     */
     public String getNodeName() {
         return nodeName;
     }
 
+    /**
+     * Get description of the node.
+     * @return node description.
+     */
     @Override
     public String toString() {
         StringBuilder ret = new StringBuilder();
@@ -202,10 +230,18 @@ public class Node  implements AbstractPositionable {
         return ret.toString();
     }
 
+    /**
+     * Get node type.
+     * @return string - node type.
+     */
     public String getNodeType() {
         return nodeType;
     }
 
+    /**
+     * Set node type.
+     * @param nodeType string - node type.
+     */
     public void setNodeType(String nodeType) {
         this.nodeType = nodeType;
     }

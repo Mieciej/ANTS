@@ -4,6 +4,9 @@ import com.maciej.ants.*;
 
 import java.util.ArrayList;
 
+/**
+ * Generates path from Start to End.
+ */
 public class Travel extends ReflectiveCommand<Ant>{
     Node start;
     Node end;

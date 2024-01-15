@@ -5,7 +5,15 @@ import com.maciej.ants.commands.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Creates new ants of selected variant.
+ */
 public class AntFactory {
+    /**
+     * Get ant of type worker.
+     * @param anthill The ant's team home.
+     * @return AntVariant with appropriate properties.
+     */
     public static Ant getWorker(Anthill anthill){
         AntVariant variant = new AntVariant("WORKER");
         Ant newAnt = new Ant(anthill,variant,1,1);
@@ -28,6 +36,11 @@ public class AntFactory {
         return  newAnt;
     }
 
+    /**
+     * Get ant of type drone.
+     * @param anthill The ant's team home.
+     * @return AntVariant with appropriate properties.
+     */
     public static Ant getDrone(Anthill anthill){
         AntVariant variant = new AntVariant("DRONE");
         Ant newAnt = new Ant(anthill,variant,0,1);
@@ -37,6 +50,11 @@ public class AntFactory {
         variant.setMapping(matching);
         return  newAnt;
     }
+    /**
+     * Get ant of type soldier.
+     * @param anthill The ant's team home.
+     * @return AntVariant with appropriate properties.
+     */
     public static Ant getSoldier(Anthill anthill){
         AntVariant variant = new AntVariant("SOLDIER");
         Ant newAnt = new Ant(anthill,variant,0,1);
@@ -55,6 +73,11 @@ public class AntFactory {
         variant.setMapping(matching);
         return  newAnt;
     }
+    /**
+     * Get ant of type collector.
+     * @param anthill The ant's team home.
+     * @return AntVariant with appropriate properties.
+     */
     public static Ant getCollector(Anthill anthill){
         AntVariant variant = new AntVariant("COLLECTOR");
         Ant newAnt = new Ant(anthill,variant,3,1);
@@ -72,6 +95,11 @@ public class AntFactory {
         variant.setMapping(matching);
         return  newAnt;
     }
+    /**
+     * Get ant of type blunderer.
+     * @param anthill The ant's team home.
+     * @return AntVariant with appropriate properties.
+     */
     public static Ant getBlunderer(Anthill anthill){
         AntVariant variant = new AntVariant("BLUNDERER");
         Ant newAnt = new Ant(anthill,variant,3,1);

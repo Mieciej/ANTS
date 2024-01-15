@@ -24,6 +24,9 @@ import java.security.Key;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Main class which is responsible for showing GUI of the program.
+ */
 public class Ants extends ApplicationAdapter {
 	SpriteBatch batch;
 	private Texture nodeTexture;
@@ -48,6 +51,9 @@ public class Ants extends ApplicationAdapter {
 	private TextButton buttonRemoveAnt;
 	private Ant selectedAnt;
 
+	/**
+	 * Run at the start of the game.
+	 */
 	@Override
 	public void create () {
 		// Load assets
@@ -61,7 +67,7 @@ public class Ants extends ApplicationAdapter {
 		camera = new OrthographicCamera();
 		camera.setToOrtho(false,960,480);
 		screenBoundX = camera.viewportWidth;
-		screenBoundY = camera.viewportHeight -   100;
+		screenBoundY = camera.viewportHeight -   120;
 		// Initialise UI elements
 		stage = new Stage();
 		descriptionPopup = new Table(skin);
@@ -110,7 +116,7 @@ public class Ants extends ApplicationAdapter {
 			}
 		});
 
-		description.setFontScale(0.75f);
+		description.setFontScale(0.7f);
 		buttonRemoveAnt = new TextButton("X",skin);
 		buttonRemoveAnt.setVisible(false);
 		buttonRemoveAnt.setColor(Color.BLACK);
@@ -130,7 +136,7 @@ public class Ants extends ApplicationAdapter {
 		descriptionPopup.add(buttonBlunderer).top().right().padTop(5);
 		Gdx.input.setInputProcessor(stage);
 		// Initialise World
-		WorldManager.initialiseWorld(4,0);
+		WorldManager.initialiseWorld(50,0);
 		// Generate and store vertices sprites
 		verticesSprites = new HashMap<>();
 		for (Node vertex :
@@ -176,6 +182,9 @@ public class Ants extends ApplicationAdapter {
 		stage.getViewport().update(width,height,true);
 	}
 
+	/**
+	 * Executed every fame.
+	 */
 	@Override
 	public void render () {
 		ScreenUtils.clear(Color.DARK_GRAY);

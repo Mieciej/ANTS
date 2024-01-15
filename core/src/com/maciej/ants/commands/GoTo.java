@@ -5,18 +5,25 @@ import com.maciej.ants.Ant;
 import com.maciej.ants.Node;
 import com.maciej.ants.WorldManager;
 
-import static java.lang.Thread.getAllStackTraces;
 import static java.lang.Thread.sleep;
 
+/**
+ * Handles movement between two nodes on the world graph.
+ */
 public class GoTo extends ReflectiveCommand<Ant> {
     Node start;
     Node end;
 
     private float progress;
     private float speed;
+
+    /**
+     * Changes ant abstract position every 16 milliseconds until the end node is reached.
+     * When the end node is reached it executes ant.onNodeReached() method.
+     */
     @Override
     public void execute() {
-        reflector.setCurrentVertex(null);
+        reflector.setCurrentNode(null);
         reflector.setAbstractPosition(start.getAbstractPosition());
         float distanceToCover ;
         if(start==end)
@@ -36,13 +43,20 @@ public class GoTo extends ReflectiveCommand<Ant> {
             reflector.setAbstractPosition(new Vector2((antPosTarget.x - antPosSource.x) * progress/distanceToCover + antPosSource.x, (antPosTarget.y - antPosSource.y) * progress/distanceToCover + antPosSource.y));
             if(progress >= distanceToCover){
                 reflector.setAbstractPosition(antPosTarget  );
-                reflector.setCurrentVertex(end);
+                reflector.setCurrentNode(end);
                 reflector.onNodeReached(end);
                 exit = true;
             }
         }
 
     }
+
+    /**
+     *
+     * @param start Node adjacent to end.
+     * @param end Node adjacent to start.
+     * @param ant The traveler.
+     */
     public GoTo( Node start, Node end, Ant ant){
         this.start = start;
         this.end = end;

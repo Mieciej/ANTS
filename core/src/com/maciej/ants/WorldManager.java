@@ -9,12 +9,20 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static com.maciej.ants.Math.haltonSequence;
 
+/**
+ * Class using singleton pattern to manage all objects relevant to running the program.
+ */
 public class WorldManager {
     private Graph<Node> graph;
     private static WorldManager instance;
     private HashMap<String,Anthill> anthills;
     private final Object antsMutex = new Object();
     private ArrayList<Ant> ants;
+
+    /**
+     *
+     * @return Singleton of WorldManager
+     */
     public static WorldManager worldManager(){
         try {
             if(instance == null){
@@ -27,6 +35,11 @@ public class WorldManager {
         return instance;
     }
 
+    /**
+     * Creates world for ants with given number of vertices and ants.
+     * @param numberOfVertices
+     * @param numberOfAnts
+     */
     public static void initialiseWorld(int numberOfVertices,int numberOfAnts) {
         instance = new WorldManager();
         worldManager().anthills = new HashMap<>();
@@ -108,6 +121,11 @@ public class WorldManager {
             }
         }
     }
+
+    /**
+     *
+     * @return Graph of nodes which is the basis of the world
+     */
     public Graph<Node> getGraph(){
         return graph;
     }
@@ -118,6 +136,12 @@ public class WorldManager {
     public HashMap<String,Anthill> getAnthills() {
         return anthills;
     }
+
+    /**
+     * Creates with variant antVariantName and same team as anthill.
+     * @param antVariantName
+     * @param anthill
+     */
     public void createAnt(String antVariantName,Anthill anthill){
         Ant ant = null;
        switch (antVariantName) {
@@ -143,11 +167,21 @@ public class WorldManager {
        ant.start();
 
     }
+
+    /**
+     * Removes given ant from the world.
+     * @param ant
+     */
     public void removeAnt(Ant ant){
         synchronized (antsMutex) {
             ants.remove(ant);
         }
     }
+
+    /**
+     *
+     * @return list of all ants in the world.
+     */
     public ArrayList<Ant> getAnts(){
         ArrayList<Ant> tmp;
         synchronized (antsMutex) {

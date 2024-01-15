@@ -8,9 +8,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Class which represents every ant on the screen.
+ */
 public class Ant extends Thread implements AbstractPositionable {
     private Vector2 abstractPosition;
-    private Node currentVertex;
+    private Node currentNode;
     public boolean exit;
     private String team;
     private LinkedBlockingQueue<Command> reactions;
@@ -23,6 +26,14 @@ public class Ant extends Thread implements AbstractPositionable {
     private int currentHP;
     private int maxHP;
     private final Object larvaeMutex = new Object();
+
+    /**
+     *
+     * @param anthill Team anthill of the ant.
+     * @param variant The ant variant.
+     * @param maxLarvae Maximum number of larvae which ant can carry.
+     * @param hp Maximum health points of the ant.
+     */
     public Ant(Anthill anthill,AntVariant variant , int maxLarvae, int hp){
         numberOfLarvae = 0;
         this.maxLarvae = maxLarvae;
@@ -31,7 +42,7 @@ public class Ant extends Thread implements AbstractPositionable {
         setExit(false);
         reactions = new LinkedBlockingQueue<>(1);
         setAnthill(anthill);
-        setCurrentVertex(getAnthill());
+        setCurrentNode(getAnthill());
         setAbstractPosition(getAnthill().getAbstractPosition());
         steps = new ArrayList<>();
         addStep(new ChooseRandomTravel(this,getAnthill()));
@@ -61,6 +72,10 @@ public class Ant extends Thread implements AbstractPositionable {
         };
         setAntName(antNames[ThreadLocalRandom.current().nextInt(antNames.length)]);
     }
+
+    /**
+     * Method executed on its own thread.
+     */
     @Override
     public void run() {
         while (!getExit()){
@@ -69,18 +84,26 @@ public class Ant extends Thread implements AbstractPositionable {
                 c.execute();
             }
             else {
-                addStep(new ChooseRandomTravel(this,getCurrentVertex()));
+                addStep(new ChooseRandomTravel(this, getCurrentNode()));
             }
         }
         WorldManager.worldManager().removeAnt(this);
     }
 
-    public Node getCurrentVertex() {
-        return currentVertex;
+    /**
+     *
+     * @return The node on which the ant resides.
+     */
+    public Node getCurrentNode() {
+        return currentNode;
     }
 
-    public void setCurrentVertex(Node currentVertex) {
-        this.currentVertex = currentVertex;
+    /**
+     * Set current node to the currentNode
+     * @param currentNode The value to be set as a currentNode.
+     */
+    public void setCurrentNode(Node currentNode) {
+        this.currentNode = currentNode;
     }
 
     /**
@@ -90,13 +113,6 @@ public class Ant extends Thread implements AbstractPositionable {
      */
     public boolean addReaction(Command reactionCommand){
        return reactions.offer(reactionCommand);
-    }
-    private Command getReaction(){
-        try {
-            return reactions.take();
-        } catch (InterruptedException  e) { setExit(true); }
-        return null;
-
     }
     private Command getReaction(int milliseconds){
         try {
@@ -109,9 +125,19 @@ public class Ant extends Thread implements AbstractPositionable {
     private void clearReactions(){
        reactions.clear();
     }
+
+    /**
+     * Set true if thread should cease execution.
+     * @param exit
+     */
     public void setExit(boolean exit) {
         this.exit = exit;
     }
+
+    /**
+     * Check if thread should stop executing.
+      * @return True if it should, otherwise false.
+     */
     public boolean getExit(){
         return exit;
     }
@@ -127,7 +153,6 @@ public class Ant extends Thread implements AbstractPositionable {
         if(!steps.isEmpty()) return steps.remove(0);
         else return null;
     }
-
     public void setAbstractPosition(Vector2 abstractPosition) {
         this.abstractPosition = abstractPosition;
     }
@@ -136,6 +161,10 @@ public class Ant extends Thread implements AbstractPositionable {
         return abstractPosition;
     }
 
+    /**
+     * Get team of the ant.
+     * @return String - team name.
+     */
     public String getTeam() {
         return team;
     }
@@ -151,6 +180,10 @@ public class Ant extends Thread implements AbstractPositionable {
         steps.clear();
     }
 
+    /**
+     * Get home node of the ant.
+     * @return Node of type Anthill representing ant's team home.
+     */
     public Anthill getAnthill() {
         return anthill;
     }
@@ -175,12 +208,15 @@ public class Ant extends Thread implements AbstractPositionable {
         clearReactions();
     }
 
-
+    /**
+     * Description of the ant.
+     * @return Description string.
+     */
     @Override
     public String toString() {
-        String ret= getAntName() + " is a " + variant.getVariantName() + " of the " + getTeam() + " team.\n";
+        String ret= getAntName() + " is a " + getTeam()+ " "+variant.getVariantName() +   "\n";
         ret += "HP: "+getCurrentHP()+"/"+getMaxHP()+"\n";
-        if(numberOfLarvae>0) ret += " is carrying " +numberOfLarvae + " larvae.\n";
+        if(numberOfLarvae>0) ret += "The ant is carrying " +numberOfLarvae+"/"+maxLarvae + " larvae.\n";
         if(!steps.isEmpty()){
             StringBuilder stepString = new StringBuilder("His current route is: \n");
             for (int i = 0; i < java.lang.Math.min(steps.size(),2);++i) {
@@ -193,10 +229,18 @@ public class Ant extends Thread implements AbstractPositionable {
         return ret;
     }
 
+    /**
+     * Sent name of the ant.
+     * @param antName
+     */
     public void setAntName(String antName) {
         this.antName = antName;
     }
 
+    /**
+     * Get ant name.
+     * @return
+     */
     public String getAntName() {
         return antName;
     }
@@ -235,11 +279,12 @@ public class Ant extends Thread implements AbstractPositionable {
     public void takeDamage(){
         if(--currentHP <= 0 ){
             ReflectiveCommand<Node> c = new DropLarvae(this);
-            c.setReflector(getCurrentVertex());
+            c.setReflector(getCurrentNode());
             c.execute();
             setExit(true);
         }
     }
+
     private int getCurrentHP(){
         return currentHP;
     }

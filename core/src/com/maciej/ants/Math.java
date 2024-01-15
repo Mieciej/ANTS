@@ -1,6 +1,12 @@
 package com.maciej.ants;
 
 public class Math {
+    /**
+     *
+     * @param base The base of the sequence.
+     * @param size The number of numbers calculated.
+     * @return float[] with sequence of numbers of length size.
+     */
     public static float[] haltonSequence(int base, int size){
         int n = 0;
         int d = 1;

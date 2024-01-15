@@ -3,6 +3,9 @@ package com.maciej.ants.commands;
 import com.maciej.ants.Ant;
 import com.maciej.ants.Node;
 
+/**
+ * Pick one larva of the reflector (node).
+ */
 public class PickLarvae extends ReflectiveCommand<Node> {
     Ant ant;
     @Override
@@ -24,6 +27,11 @@ public class PickLarvae extends ReflectiveCommand<Node> {
         }
 
     }
+
+    /**
+     *
+     * @param ant The ant which will pick the larvae.
+     */
     public PickLarvae(Ant ant){
         this.ant = ant;
     }
